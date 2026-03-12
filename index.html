@@ -451,27 +451,55 @@ Equilíbrio Financeiro
             });
 
         }
-function validar(chave){
 
-    let dispositivo = navigator.userAgent;
 
-    fetch("https://apavan.com.br/sistema/validar.php?key="+chave+"&device="+dispositivo)
-    .then(r=>r.text())
-    .then(res=>{
+function validarLicenca(chave){
 
-        if(res.trim()!="VALIDO"){
+if(!chave) return false;
 
-            localStorage.removeItem("licenca");
+let p = chave.split("-");
 
-            alert("Licença inválida");
+if(p.length != 4) return false;
 
-            ativar();
+if(p[0] != "APV") return false;
 
-        }
+let a = parseInt(p[1]);
+let b = parseInt(p[2]);
+let c = parseInt(p[3]);
 
-    });
+if(isNaN(a) || isNaN(b) || isNaN(c)) return false;
+
+// algoritmo de verificação
+let verificador = (a * 7 + b * 11) % 10000;
+
+if(verificador != c) return false;
+
+return true;
 
 }
+
+// verifica se já está ativado
+let licenca = localStorage.getItem("licenca_ativa");
+
+if(!licenca){
+
+let chave = prompt("Digite sua chave de ativação:");
+
+if(validarLicenca(chave)){
+
+localStorage.setItem("licenca_ativa",chave);
+
+alert("Licença ativada com sucesso!");
+
+}else{
+
+alert("Chave inválida");
+location.reload();
+
+}
+
+}
+
         // ========== FIM DO CÓDIGO DE LICENÇA ==========
 
         // Função para gerar ID compatível com navegadores antigos
