@@ -414,44 +414,11 @@ Equilíbrio Financeiro
 
     <script>
         // ========== CÓDIGO DE LICENÇA ADICIONADO ==========
-        let licenca = localStorage.getItem("licenca");
 
-        if(!licenca){
-    ativar();
-}else{
-    validar(licenca);
+if(window.location.hostname !== "ademil.github.io"){
+alert("Aplicativo não autorizado.");
+document.body.innerHTML="";
 }
-
-        function ativar(){
-
-            let chave = prompt("Digite sua chave de ativação");
-
-            let dispositivo = navigator.userAgent;
-
-            fetch("https://apavan.com.br/sistema/ativar.php?key="+chave+"&device="+dispositivo)
-            .then(r=>r.text())
-            .then(res=>{
-
-                if(res.trim()=="VALIDO"){
-
-                    localStorage.setItem("licenca",chave);
-
-                    alert("Licença ativada com sucesso");
-
-                    location.reload();
-
-                }else{
-
-                    alert("Licença inválida ou usada em outro celular");
-
-                    ativar();
-
-                }
-
-            });
-
-        }
-
 
 function validarLicenca(chave){
 
@@ -469,7 +436,6 @@ let c = parseInt(p[3]);
 
 if(isNaN(a) || isNaN(b) || isNaN(c)) return false;
 
-// algoritmo de verificação
 let verificador = (a * 7 + b * 11) % 10000;
 
 if(verificador != c) return false;
@@ -478,12 +444,16 @@ return true;
 
 }
 
-// verifica se já está ativado
 let licenca = localStorage.getItem("licenca_ativa");
 
 if(!licenca){
 
 let chave = prompt("Digite sua chave de ativação:");
+
+if(!chave){
+alert("Licença obrigatória");
+location.reload();
+}
 
 if(validarLicenca(chave)){
 
@@ -498,7 +468,8 @@ location.reload();
 
 }
 
-}
+}   
+
 
         // ========== FIM DO CÓDIGO DE LICENÇA ==========
 
