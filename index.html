@@ -414,7 +414,7 @@ Equilíbrio Financeiro
 
     <script>
         // ========== CÓDIGO DE LICENÇA ADICIONADO ==========
-
+        
 if(window.location.hostname !== "ademil.github.io"){
 alert("Aplicativo não autorizado.");
 document.body.innerHTML="";
@@ -422,25 +422,25 @@ document.body.innerHTML="";
 
 function validarLicenca(chave){
 
-if(!chave) return false;
+if(!chave || chave.length < 10) return false;
 
-let p = chave.split("-");
+let p = chave.trim().split("-");
 
-if(p.length != 4) return false;
+if(p.length !== 4) return false;
 
-if(p[0] != "APV") return false;
+if(p[0] !== "APV") return false;
 
-let a = parseInt(p[1]);
-let b = parseInt(p[2]);
-let c = parseInt(p[3]);
+let a = Number(p[1]);
+let b = Number(p[2]);
+let c = Number(p[3]);
 
-if(isNaN(a) || isNaN(b) || isNaN(c)) return false;
+if(!Number.isInteger(a) || !Number.isInteger(b) || !Number.isInteger(c)){
+return false;
+}
 
 let verificador = (a * 7 + b * 11) % 10000;
 
-if(verificador != c) return false;
-
-return true;
+return verificador === c;
 
 }
 
@@ -457,7 +457,7 @@ location.reload();
 
 if(validarLicenca(chave)){
 
-localStorage.setItem("licenca_ativa",chave);
+localStorage.setItem("licenca_ativa", chave);
 
 alert("Licença ativada com sucesso!");
 
@@ -468,7 +468,8 @@ location.reload();
 
 }
 
-}   
+}
+  
 
 
         // ========== FIM DO CÓDIGO DE LICENÇA ==========
