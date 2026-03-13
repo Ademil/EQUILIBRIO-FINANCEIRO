@@ -415,62 +415,92 @@ Equilíbrio Financeiro
     <script>
         // ========== CÓDIGO DE LICENÇA ADICIONADO ==========
         
-if(window.location.hostname !== "ademil.github.io"){
-alert("Aplicativo não autorizado.");
-document.body.innerHTML="";
+// ========== VALIDAÇÃO REMOTA DA LICENÇA ==========
+
+// Impede execução fora do GitHub Pages (opcional, mantenha se desejar)
+if (window.location.hostname !== "ademil.github.io") {
+    alert("Aplicativo não autorizado.");
+    document.body.innerHTML = "";
+    throw new Error("Domínio inválido");
 }
 
-function validarLicenca(chave){
-
-if(!chave || chave.length < 10) return false;
-
-let p = chave.trim().split("-");
-
-if(p.length !== 4) return false;
-
-if(p[0] !== "APV") return false;
-
-let a = Number(p[1]);
-let b = Number(p[2]);
-let c = Number(p[3]);
-
-if(!Number.isInteger(a) || !Number.isInteger(b) || !Number.isInteger(c)){
-return false;
+// Função para validar chave via servidor
+async function validarChaveRemota(chave) {
+    try {
+        const response = await fetch('https://apavan.com.br/vendas/validar_chave.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'chave=' + encodeURIComponent(chave)
+        });
+        const data = await response.json();
+        return data.valida === true; // espera { valida: true } ou { valida: false }
+    } catch (error) {
+        console.error('Erro na validação remota:', error);
+        return false;
+    }
 }
 
-let verificador = (a * 7 + b * 11) % 10000;
+// Função principal de ativação
+async function ativarAplicativo() {
+    // Tenta obter chave já armazenada
+    let chaveArmazenada = localStorage.getItem("chave_ativa");
 
-return verificador === c;
+    if (chaveArmazenada) {
+        // Valida a chave armazenada (pode ter sido invalidada no servidor)
+        const valida = await validarChaveRemota(chaveArmazenada);
+        if (valida) {
+            // Chave ainda válida, prossegue
+            return true;
+        } else {
+            // Chave inválida ou expirada, remove e pede nova
+            localStorage.removeItem("chave_ativa");
+        }
+    }
 
+    // Se não há chave válida, solicita ao usuário
+    let tentativas = 0;
+    const maxTentativas = 3;
+    while (tentativas < maxTentativas) {
+        const chaveDigitada = prompt("Digite sua chave de ativação (formato APV-XXXX-XXXX-XXXX):");
+        if (!chaveDigitada) {
+            alert("Aplicativo bloqueado. Uma chave é necessária.");
+            return false;
+        }
+
+        // Valida formato básico (opcional, mas ajuda)
+        if (!/^APV-\d{4}-\d{4}-\d{4}$/.test(chaveDigitada)) {
+            alert("Formato inválido. Use APV-XXXX-XXXX-XXXX");
+            tentativas++;
+            continue;
+        }
+
+        const valida = await validarChaveRemota(chaveDigitada);
+        if (valida) {
+            localStorage.setItem("chave_ativa", chaveDigitada);
+            alert("Chave ativada com sucesso!");
+            return true;
+        } else {
+            alert("Chave inválida ou já utilizada. Tente novamente.");
+            tentativas++;
+        }
+    }
+
+    // Excede tentativas
+    alert("Número máximo de tentativas excedido. Recarregue a página para tentar novamente.");
+    return false;
 }
 
-let licenca = localStorage.getItem("licenca_ativa");
+// Executa a ativação antes de liberar o app
+(async () => {
+    const ativado = await ativarAplicativo();
+    if (!ativado) {
+        // Se não ativado, limpa a tela (ou redireciona)
+        document.body.innerHTML = '<div style="text-align:center;padding:40px;"><h2>Acesso negado</h2><p>Não foi possível validar a licença.</p></div>';
+    }
+    // Se ativado, o app continua normalmente
+})();
 
-if(!licenca){
-
-let chave = prompt("Digite sua chave de ativação:");
-
-if(!chave){
-alert("Licença obrigatória");
-location.reload();
-}
-
-if(validarLicenca(chave)){
-
-localStorage.setItem("licenca_ativa", chave);
-
-alert("Licença ativada com sucesso!");
-
-}else{
-
-alert("Chave inválida");
-location.reload();
-
-}
-
-}
-  
-
+// ========== FIM DA VALIDAÇÃO REMOTA ==========
 
         // ========== FIM DO CÓDIGO DE LICENÇA ==========
 
